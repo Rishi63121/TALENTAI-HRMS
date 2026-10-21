@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="TalentAI HRMS - AI-powered recruitment and workforce management." />
+    <meta name="theme-color" content="#5b5ff0" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <title>TalentAI - AI-powered HR</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Apply the saved theme before first paint (light unless the user chose dark) so there is no flash.
+      // Keep in sync with resolveTheme() in src/lib/theme.js.
+      (function () {
+        try {
+          if (localStorage.getItem('talentai-theme') === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+
+    <style>
+      /* Branded splash: visible instantly, before any JavaScript has loaded. React replaces it. */
+      #boot {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        background: #f6f7fb; color: #0f1226; font-family: Inter, system-ui, sans-serif;
+      }
+      .dark #boot { background: #0a0b1a; color: #eceefc; }
+      #boot .wrap { display: grid; justify-items: center; gap: 18px; }
+      #boot .ring {
+        width: 56px; height: 56px; border-radius: 50%;
+        border: 3px solid rgba(91, 95, 240, 0.18); border-top-color: #5b5ff0;
+        animation: boot-spin 0.9s linear infinite;
+      }
+      #boot p { margin: 0; font-size: 14px; opacity: 0.7; letter-spacing: 0.01em; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot" role="status" aria-live="polite">
+        <div class="wrap">
+          <div class="ring"></div>
+          <p>Loading TalentAI&hellip;</p>
+        </div>
+      </div>
+      <noscript>TalentAI needs JavaScript enabled to run.</noscript>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

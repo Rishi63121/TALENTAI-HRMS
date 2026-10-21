@@ -133,3 +133,20 @@ class PerformanceReview(Base):
     comments = Column(Text)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ================= EMAIL LOG =================
+
+class EmailLog(Base):
+    """One row per email the system tried to send to a candidate (also the audit trail)."""
+    __tablename__ = "email_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidates.id"), index=True)
+    to_email = Column(String)
+    template = Column(String)   # accepted | hired | rejected | test
+    subject = Column(String)
+    status = Column(String, default="queued")   # queued | sent | failed | skipped
+    error = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    sent_at = Column(DateTime)

@@ -1,239 +1,145 @@
-TalentAI HRMS
+# TalentAI HRMS
 
-Overview
+AI-assisted recruitment and HR operations in one place. Three role-based workspaces - **Admin**, **Recruiter** and **Employee** - on a FastAPI backend and a React frontend that works on phones and laptops.
 
-TalentAI HRMS is a full-stack Human Resource Management System that streamlines recruitment and employee management processes through role-based access control and AI-powered features.
+## Highlights
 
-The system provides dedicated dashboards for Admins, Recruiters, and Employees, ensuring secure access to relevant data and functionalities.
+- **AI resume screening** - upload a PDF, pick a job, get a match score with matched/missing skills (Groq, Llama 3.3). Falls back to keyword matching - and says so - when the AI is unavailable.
+- **Interview question generation** tailored to each candidate.
+- **Hiring pipeline** - applied -> screened -> onboarding -> hired, with rankings per job.
+- **HR operations** - employees, attendance (with employee self check-in), payroll, performance reviews.
+- **Live insights** - role-aware dashboards and analytics.
+- **Secure by default** - JWT auth, server-enforced roles on every endpoint, employees can only see their own attendance/payroll/reviews, admins cannot be self-registered.
+- **Polished UX** - light/dark themes, smooth animations (respecting reduced-motion), skeleton loading, a branded loading screen, and error screens that explain *what happened* and *what to do* (offline, server down, session expired, no access, not found).
 
-⸻
+## Run it locally
 
-Features
+Requirements: Python 3.10+, Node 20+.
 
-Authentication & Security
+### 1. Backend (from the project root, i.e. the folder containing `backend/`)
 
-* JWT-based Authentication
-* Role-Based Access Control (RBAC)
-* Secure Password Hashing
-* Protected API Endpoints
+```bash
+python -m venv venv
+venv\Scripts\activate            # macOS/Linux: source venv/bin/activate
+pip install -r backend/requirements.txt
 
-Admin Module
+copy .env.example .env           # macOS/Linux: cp .env.example .env  -> then edit it
+python seed.py --demo            # creates the admin + demo data (omit --demo for the admin only)
+uvicorn backend.main:app --reload
+```
 
-* Employee Management
-* Attendance Management
-* Payroll Management
-* Performance Review Management
-* Analytics Dashboard
-* Organization-wide Monitoring
+API: <http://localhost:8000> - interactive docs: <http://localhost:8000/docs> - health: `/health`
 
-Recruiter Module
+### 2. Frontend
 
-* Job Management
-* Candidate Management
-* Resume Screening
-* AI-Powered Interview Question Generation
-* Recruitment Workflow Tracking
-
-Employee Module
-
-* Personal Dashboard
-* Profile Management
-* View Attendance Records
-* View Payroll Information
-* View Performance Reviews
-* Employee-Specific Data Access
-
-⸻
-
-User Roles
-
-Admin
-
-* Manage employees
-* Manage attendance records
-* Generate payroll
-* Manage performance reviews
-* View analytics and reports
-
-Recruiter
-
-* Create and manage job postings
-* Manage candidates
-* Screen resumes
-* Generate AI interview questions
-* Track recruitment process
-
-Employee
-
-* View personal attendance
-* View payroll details
-* View performance reviews
-* Access profile information
-
-⸻
-
-Technology Stack
-
-Frontend
-
-* React.js
-* Tailwind CSS
-* Axios
-* React Router
-* Recharts
-
-Backend
-
-* FastAPI
-* SQLAlchemy
-* Pydantic
-* JWT Authentication
-
-Database
-
-* SQLite
-
-AI Features
-
-* Resume Screening
-* Interview Question Generation
-
-⸻
-
-Project Structure
-
-TalentAI-HRMS/
-│
-├── backend/
-│   ├── routers/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   ├── database/
-│   └── main.py
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── layouts/
-│   │   ├── context/
-│   │   └── api/
-│   │
-│   └── public/
-│
-└── README.md
-
-⸻
-
-Setup Instructions
-
-Backend Setup
-
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-
-Backend runs on:
-
-http://localhost:8000
-
-Swagger Documentation:
-
-http://localhost:8000/docs
-
-⸻
-
-Frontend Setup
-
+```bash
 cd frontend
+copy .env.example .env           # optional: only needed if the API is not on localhost:8000
 npm install
 npm run dev
+```
 
-Frontend runs on:
+App: <http://localhost:5173>. The dev server also listens on your network, so you can open it from a phone on the same Wi-Fi to test the mobile layout.
 
-http://localhost:5173
+### Demo accounts (after `python seed.py --demo`)
 
-⸻
+| Role      | Email                    | Password   |
+| --------- | ------------------------ | ---------- |
+| Admin     | admin@talentai.com       | admin123   |
+| Recruiter | recruiter@talentai.com   | Demo@1234  |
+| Employee  | employee@talentai.com    | Demo@1234  |
 
-API Modules
+Change these before using real data. In development the login page shows one-click demo buttons.
 
-Authentication
+## Configuration (`.env`)
 
-* Login
-* Registration
-* JWT Token Management
+| Variable | Purpose |
+| --- | --- |
+| `SECRET_KEY` | Signs login tokens. **Set a long random value.** |
+| `GROQ_API_KEY` | Enables AI scoring and interview questions. Without it the app falls back to keyword matching. |
+| `DATABASE_URL` | Defaults to SQLite in `database/`. Use `postgresql://user:pass@host:5432/db` for PostgreSQL. |
+| `AUTO_MIGRATE` | `true` (default) applies pending migrations when the API starts. Set `false` to run `alembic upgrade head` yourself. |
+| `RATE_LIMIT_DEFAULT` / `_AUTH` / `_HEAVY` | Per-IP limits: all endpoints (`120/minute`), login + register (`10/minute`), uploads + AI (`20/minute`). `RATE_LIMIT_ENABLED=false` turns limiting off. |
+| `RATE_LIMIT_STORAGE_URI` | `memory://` by default. Use `redis://...` when running several workers. |
+| `TRUST_PROXY` | `true` only behind your own reverse proxy, so the real client IP is read from `X-Forwarded-For`. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Session length. |
+| `CORS_ORIGINS` | Comma-separated browser origins allowed to call the API in production. |
 
-Recruitment
+## Candidate emails
 
-* Jobs
-* Candidates
-* Resumes
-* Interview Generation
+Candidates are emailed automatically over SMTP when their onboarding status changes:
 
-HRMS
+| Event | Email |
+| --- | --- |
+| Onboarding started | "You have been selected" |
+| Onboarding completed | Welcome email |
+| Onboarding rejected | Polite rejection |
 
-* Employees
-* Attendance
-* Payroll
-* Performance Reviews
+Reject and Complete ask for confirmation first and let you untick "send email". Each email is sent at most once per candidate,
+runs in the background (a mail outage never blocks a status change), and is recorded in the `email_log` table
+(`GET /emails`; failed or skipped ones can be re-sent with `POST /emails/{id}/resend`).
 
-Analytics
+Set it up in `.env` (see `.env.example`): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `COMPANY_NAME`.
+For Gmail use `smtp.gmail.com`, port 587 and an App Password. Until `SMTP_HOST` is set nothing is sent; attempts are logged as
+"skipped". Admins can verify the settings with `POST /emails/test` (`{"to": "you@example.com"}`).
+`AUTO_EMAIL=false` turns automatic emails off entirely.
 
-* Organization Metrics
-* Attendance Insights
-* Employee Statistics
+## Database and migrations
 
-⸻
+The schema is managed by Alembic (`migrations/`). The API applies pending migrations on startup, and `seed.py` does too.
+An existing database created before Alembic was added is detected and adopted automatically.
 
-Security Features
+```bash
+alembic revision --autogenerate -m "describe the change"   # after editing backend/models/models.py
+alembic upgrade head                                        # apply
+alembic downgrade -1                                        # roll back one step
+```
 
-* JWT Token Authentication
-* Protected Routes
-* Employee Data Isolation
-* Role-Based Access Control
-* Secure Password Storage
+Review every generated migration before committing it. A test fails if the models and migrations drift apart.
 
-⸻
+PostgreSQL locally: `docker compose up -d db`, then set
+`DATABASE_URL=postgresql://talentai:talentai@localhost:5432/talentai` in `.env`.
 
-Employee Data Isolation
+## Tests
 
-Employees can only access their own:
+```bash
+pip install -r requirements-dev.txt
+python -m pytest                          # uses a throwaway SQLite database
+TEST_DATABASE_URL=postgresql://... python -m pytest   # same suite on PostgreSQL (CI does both)
+```
 
-* Attendance Records
-* Payroll Information
-* Performance Reviews
-* Profile Details
+## Project layout
 
-Administrative users retain access to organization-wide data.
+```
+talentai-hrms/
+  backend/
+    main.py            app, CORS, uniform error responses, /health
+    routers/           auth, employees, attendance, payroll, performance, jobs,
+                       candidates, resumes, resume_screening, interview, onboarding, dashboard
+    services/          auth (JWT + role guards), ai, resume parsing, ranking
+    models/ schemas/
+  database/            SQLAlchemy engine/session
+  frontend/src/
+    api/               axios client + react-query hooks (queries.js)
+    components/        ui kit, feedback (loaders, errors), layout shell, charts
+    pages/             admin/ recruiter/ employee/ shared/ auth/
+    context/           auth, theme, toasts
+  seed.py              admin (+ optional demo data)
+```
 
-⸻
+## Roles at a glance
 
-Demo Accounts
+| | Admin | Recruiter | Employee |
+| --- | :-: | :-: | :-: |
+| Dashboard & analytics | yes | yes (hiring) | yes (personal) |
+| Employees, attendance, payroll, performance | manage | - | view own |
+| Jobs, candidates, screening, interviews, onboarding | yes | yes | - |
+| Recruiter directory | yes | - | - |
 
-Admin
+## Before going to production
 
-* Role: Admin
-
-Recruiter
-
-* Role: Recruiter
-
-Employee
-
-* Role: Employee
-
-Passwords have been omitted from the repository for security reasons.
-
-⸻
-
-Future Enhancements
-
-* Email Notifications
-* Leave Management
-* Employee Self-Service Requests
-* AI Candidate Ranking Improvements
-* Advanced Analytics Dashboard
-* Cloud Deployment
-
-⸻
+- Set a strong `SECRET_KEY`, change the seeded passwords, set `CORS_ORIGINS`.
+- Use PostgreSQL (`DATABASE_URL`); back it up. Migrations run automatically unless `AUTO_MIGRATE=false`.
+- Behind a proxy, set `TRUST_PROXY=true`; with more than one worker, set `RATE_LIMIT_STORAGE_URI` to Redis.
+- Serve the frontend (`npm run build` -> `frontend/dist`) behind HTTPS.
+- CI (`.github/workflows/ci.yml`) runs the tests on SQLite and PostgreSQL once the project is pushed to GitHub.

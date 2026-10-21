@@ -1,11 +1,17 @@
 import json
+import logging
 import os
 import re
 from typing import Dict, Any, List
 
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
+logger = logging.getLogger("talentai.ai")
+
+dotenv_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 load_dotenv()
 
 # ==========================================================
@@ -13,11 +19,12 @@ load_dotenv()
 # ==========================================================
 
 client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
+    api_key=os.getenv("GROQ_API_KEY") or "dummy-groq-key",
     base_url="https://api.groq.com/openai/v1"
 )
 
-MODEL_NAME = "llama-3.3-70b-versatile"
+# Groq retires models over time; override with GROQ_MODEL in .env without touching code.
+MODEL_NAME = os.getenv("GROQ_MODEL") or "openai/gpt-oss-120b"
 
 
 # ==========================================================
@@ -25,34 +32,20 @@ MODEL_NAME = "llama-3.3-70b-versatile"
 # ==========================================================
 
 def _call_llm(prompt: str) -> str:
+    if not os.getenv("GROQ_API_KEY"):
+        logger.warning("GROQ_API_KEY is not set; using fallback logic")
+        return ""
     try:
         response = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
-            max_tokens=1000
+            max_tokens=1000,
+            timeout=30,
         )
-
-        print("\n" + "=" * 50)
-        print("GROQ RAW RESPONSE")
-        print("=" * 50)
-        print(response.choices[0].message.content)
-        print("=" * 50 + "\n")
-
-        return response.choices[0].message.content
-
-    except Exception as e:
-        print("\n" + "=" * 50)
-        print("GROQ ERROR")
-        print("=" * 50)
-        print(e)
-        print("=" * 50 + "\n")
-
+        return response.choices[0].message.content or ""
+    except Exception as exc:  # network, quota, auth...
+        logger.warning("Groq request failed: %s", exc)
         return ""
 
 
@@ -61,18 +54,15 @@ def _call_llm(prompt: str) -> str:
 # ==========================================================
 
 def _parse_json_response(text: str) -> Any:
-
-    print("\n" + "=" * 50)
-    print("JSON BEFORE PARSING")
-    print("=" * 50)
-    print(text)
-    print("=" * 50 + "\n")
-
-    text = re.sub(r"```json", "", text)
-    text = re.sub(r"```", "", text)
-    text = text.strip()
-
-    return json.loads(text)
+    text = re.sub(r"```(?:json)?", "", text).strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # The model sometimes wraps JSON in prose: grab the first {...} or [...] block.
+        match = re.search(r"(\{.*\}|\[.*\])", text, re.DOTALL)
+        if match:
+            return json.loads(match.group(1))
+        raise
 
 
 # ==========================================================
@@ -139,17 +129,18 @@ Return only JSON.
             result = _parse_json_response(raw)
 
             return {
-                "match_score": float(result.get("match_score", 0)),
+                "match_score": max(0.0, min(100.0, float(result.get("match_score", 0)))),
                 "matched_skills": result.get("matched_skills", []),
                 "missing_skills": result.get("missing_skills", []),
                 "summary": result.get(
                     "summary",
                     "Candidate evaluated using AI."
                 ),
+                "source": "ai",
             }
 
     except Exception as e:
-        print("AI Parse Error:", e)
+        logger.warning("AI scoring parse error: %s", e)
 
     # ======================================================
     # FALLBACK SCORING
@@ -176,7 +167,8 @@ Return only JSON.
         "match_score": round(score, 2),
         "matched_skills": matched,
         "missing_skills": missing,
-        "summary": "Score computed via keyword matching (AI unavailable)."
+        "summary": "Score computed via keyword matching (AI unavailable).",
+        "source": "keyword",
     }
 
 
@@ -236,7 +228,7 @@ Example:
                 return questions
 
     except Exception as e:
-        print("Question Generation Error:", e)
+        logger.warning("Question generation parse error: %s", e)
 
     # ======================================================
     # FALLBACK QUESTIONS

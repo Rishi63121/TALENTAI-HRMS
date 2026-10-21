@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: talentai
+          POSTGRES_PASSWORD: talentai
+          POSTGRES_DB: talentai
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U talentai" --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.10" }
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Tests on SQLite
+        run: python -m pytest -q
+      - name: Tests on PostgreSQL
+        run: python -m pytest -q
+        env:
+          TEST_DATABASE_URL: postgresql://talentai:talentai@localhost:5432/talentai
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: frontend }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

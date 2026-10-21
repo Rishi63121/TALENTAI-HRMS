@@ -102,5 +102,10 @@ _COMMON_SKILLS = [
 
 def _extract_skills(text: str) -> list:
     lower = text.lower()
-    found = [skill for skill in _COMMON_SKILLS if skill in lower]
+    found = []
+    for skill in _COMMON_SKILLS:
+        # Whole-token match so "go" does not fire on "good" and "java" not on "javascript".
+        pattern = r"(?<![a-z0-9+#])" + re.escape(skill) + r"(?![a-z0-9+#])"
+        if re.search(pattern, lower):
+            found.append(skill)
     return list(dict.fromkeys(found))  # deduplicate while preserving order

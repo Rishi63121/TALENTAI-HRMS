@@ -1,10 +1,11 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from database.db import get_db
+from backend.services.rate_limit import HEAVY_LIMIT, limiter
 from backend.models.models import Candidate, InterviewQuestion, CandidateScore, Job
 from backend.schemas.schemas import InterviewQuestionRequest, InterviewQuestionResponse
-from backend.services.auth_service import get_current_user
+from backend.services.auth_service import staff_only
 from backend.services.ai_service import generate_interview_questions
 from backend.services.resume_service import parse_resume
 
@@ -12,10 +13,12 @@ router = APIRouter()
 
 
 @router.post("/questions", response_model=InterviewQuestionResponse)
+@limiter.limit(HEAVY_LIMIT)
 def get_interview_questions(
+    request: Request,
     payload: InterviewQuestionRequest,
     db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user),
+    _: dict = Depends(staff_only),
 ):
     candidate = db.query(Candidate).filter(Candidate.id == payload.candidate_id).first()
     if not candidate:
@@ -62,7 +65,7 @@ def get_interview_questions(
 def get_question_history(
     candidate_id: int,
     db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user),
+    _: dict = Depends(staff_only),
 ):
     records = (
         db.query(InterviewQuestion)

@@ -13,6 +13,9 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     token: str
     role: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    user_id: Optional[int] = None
 
 
 class UserCreate(BaseModel):
@@ -28,6 +31,12 @@ class JobRequest(BaseModel):
     title: str
     description: str
     required_skills: List[str]
+
+
+class JobUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    required_skills: Optional[List[str]] = None
 
 
 class JobResponse(BaseModel):
@@ -48,6 +57,8 @@ class JobListItem(BaseModel):
 class ResumeUploadResponse(BaseModel):
     candidate_id: int
     message: str
+    name: Optional[str] = None
+    skills: List[str] = []
 
 
 # ── Candidates ────────────────────────────────────────────────────────────────
@@ -62,6 +73,8 @@ class CandidateScoreResponse(BaseModel):
     score: float
     matched_skills: List[str]
     missing_skills: List[str]
+    summary: str = ""
+    source: str = "ai"  # "ai" or "keyword" (fallback when the AI service is unavailable)
 
 
 class CandidateRankItem(BaseModel):
@@ -97,6 +110,7 @@ class OnboardingRequest(BaseModel):
 
 class OnboardingResponse(BaseModel):
     status: str
+    email: Optional[dict] = None  # what happened with the candidate email, if one was triggered
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -115,6 +129,13 @@ class EmployeeCreate(BaseModel):
     salary: float
 
 
+class EmployeeUpdate(BaseModel):
+    name: Optional[str] = None
+    department: Optional[str] = None
+    designation: Optional[str] = None
+    salary: Optional[float] = None
+
+
 class EmployeeResponse(EmployeeCreate):
     id: int
 
@@ -126,7 +147,7 @@ class EmployeeResponse(EmployeeCreate):
 
 class AttendanceCreate(BaseModel):
     employee_id: int
-    status: str
+    status: str  # Present / Absent / WFH / Leave
 
 
 # ================= PAYROLL =================

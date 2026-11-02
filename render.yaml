@@ -16,6 +16,10 @@ services:
       # Demo: sample data is reloaded on every boot (free instances have an ephemeral disk).
       - key: DEMO_MODE
         value: "true"
+      # Free instances have ~0.1 CPU: bcrypt at the default cost takes ~2 s per hash, slowing every login and every boot
+      # (the demo accounts are re-created on boot). The demo passwords are public anyway, so use a cheap cost here.
+      - key: BCRYPT_ROUNDS
+        value: "6"
       # The Vercel site (and its preview deployments) may call this API. Add a custom domain via CORS_ORIGINS.
       - key: CORS_ORIGIN_REGEX
         value: ^https://talentai-hrms[a-z0-9-]*\.vercel\.app$

@@ -12,6 +12,9 @@ export const USER_KEY = 'user';
 /** Long-running AI calls (resume screening, interview questions) get a longer budget. */
 export const AI_TIMEOUT = 90_000;
 
+/** Sign-in/up can land on a sleeping free host that needs ~1-2 minutes to boot; the host holds the request until then. */
+export const COLD_START_TIMEOUT = 120_000;
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 20_000,
@@ -51,7 +54,8 @@ api.interceptors.response.use(
 /** Pings the lightweight /health endpoint. Used to tell "server down" apart from "no internet". */
 export async function pingServer(timeout = 4000) {
   try {
-    const res = await axios.get(`${API_BASE_URL}/health`, { timeout });
+    // The API root, not /health: ad blockers block that path name (ERR_BLOCKED_BY_CLIENT) and would look like an outage.
+    const res = await axios.get(`${API_BASE_URL}/`, { timeout });
     return res.status === 200;
   } catch {
     return false;

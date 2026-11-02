@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import api, { TOKEN_KEY, USER_KEY, setUnauthorizedHandler } from '../api/axios';
+import api, { COLD_START_TIMEOUT, TOKEN_KEY, USER_KEY, setUnauthorizedHandler } from '../api/axios';
 import { queryClient } from '../lib/queryClient';
 import { normalizeError } from '../lib/errors';
 import { ensureAwake } from '../lib/serverWake';
@@ -105,7 +105,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     await ensureAwake();
-    const { data } = await api.post('/auth/login', { email, password });
+    const { data } = await api.post('/auth/login', { email, password }, { timeout: COLD_START_TIMEOUT });
     const nextUser = {
       user_id: data.user_id,
       name: data.name,
@@ -123,7 +123,7 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (payload) => {
     await ensureAwake();
-    const { data } = await api.post('/auth/register', payload);
+    const { data } = await api.post('/auth/register', payload, { timeout: COLD_START_TIMEOUT });
     return data;
   }, []);
 

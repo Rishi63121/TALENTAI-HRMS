@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createWaker, isHostedApi } from '../src/lib/wake.js';
+import { PING_PATH, createWaker, isHostedApi } from '../src/lib/wake.js';
 
 const HOSTED = 'https://talentai-api.onrender.com';
 
@@ -33,7 +33,6 @@ test('a sleeping server is retried until it answers, and the state becomes wakin
   const seen = [];
   const w = createWaker({
     baseUrl: HOSTED,
-    slowAfter: 5,
     retryEvery: 10,
     fetchImpl: async () => {
       attempts += 1;
@@ -69,6 +68,18 @@ test('concurrent callers share one wake-up, and later callers return at once', a
   assert.equal(calls, 1);
 });
 
+test('a slow but healthy first response is not reported as a sleeping server', async () => {
+  const seen = [];
+  const w = createWaker({
+    baseUrl: HOSTED,
+    slowAfter: 50,
+    fetchImpl: () => new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 20)), // slower than nothing, faster than slowAfter
+  });
+  w.subscribe(() => seen.push(w.getState()));
+  assert.equal(await w.wake(), true);
+  assert.ok(!seen.includes('waking'));
+});
+
 test('it gives up after the limit, reports failed, and can be retried', async () => {
   let clock = 0;
   let up = false;
@@ -87,4 +98,40 @@ test('it gives up after the limit, reports failed, and can be retried', async ()
   up = true;
   assert.equal(await w.wake(), true); // "Try again" button
   assert.equal(w.getState(), 'ready');
+});
+
+test('after giving up, ensureAwake does not start another long wait', async () => {
+  let clock = 0;
+  let calls = 0;
+  const w = createWaker({
+    baseUrl: HOSTED,
+    giveUpAfter: 100,
+    retryEvery: 40,
+    now: () => clock,
+    wait: async (ms) => {
+      clock += ms;
+    },
+    fetchImpl: async () => (calls++, { ok: false }),
+  });
+  await w.wake();
+  const before = calls;
+  assert.equal(await w.ensureAwake(), false); // a sign-in would now go straight through
+  assert.equal(calls, before);
+});
+
+test('it pings the API root and never /health (ad blockers block that path name)', async () => {
+  const urls = [];
+  const w = createWaker({ baseUrl: `${HOSTED}/`, fetchImpl: async (url) => (urls.push(url), { ok: true }) });
+  await w.wake();
+  assert.equal(PING_PATH, '/');
+  assert.deepEqual(urls, [`${HOSTED}/`]);
+  assert.ok(!urls.some((u) => u.includes('health')));
+});
+
+test('a blocked ping can never hold a request back for more than maxWait', async () => {
+  // Simulates ERR_BLOCKED_BY_CLIENT: every ping throws immediately, forever.
+  const w = createWaker({ baseUrl: HOSTED, retryEvery: 5, giveUpAfter: 300, fetchImpl: async () => { throw new TypeError('Failed to fetch'); } });
+  const started = Date.now();
+  assert.equal(await w.ensureAwake({ maxWait: 60 }), false);
+  assert.ok(Date.now() - started < 1000);
 });

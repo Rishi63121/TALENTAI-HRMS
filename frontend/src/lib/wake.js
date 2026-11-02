@@ -1,11 +1,14 @@
 /**
  * Wake-up for hosts that put the API to sleep when idle (e.g. Render's free tier takes ~50 s to start).
  *
- * `createWaker` starts pinging /health as soon as it is called (we do that on page load, long before anyone clicks
+ * `createWaker` starts pinging the API as soon as it is called (we do that on page load, long before anyone clicks
  * "Sign in"), keeps retrying until the API answers, and exposes its state so the UI can explain the wait. Local and
  * LAN API URLs are never asleep, so they skip the whole thing.
  *
- * states: idle -> checking -> (waking, once it takes longer than `slowAfter`) -> ready | failed
+ * states: idle -> checking -> waking -> ready | failed
+ * "waking" is only shown once a check has actually failed (the host answers 502/503 or drops the connection while it
+ * boots) or has taken longer than `slowAfter`. A merely slow-but-healthy first request (far-away visitors, TLS setup) is
+ * not reported as a sleeping server.
  */
 
 const LOCAL_HOST = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
@@ -14,13 +17,20 @@ export function isHostedApi(baseUrl) {
   return !LOCAL_HOST.test(String(baseUrl || ''));
 }
 
+/**
+ * What we ping. NOT `/health`: ad blockers and browser shields (Brave, uBlock lists...) block URLs named /health as
+ * "telemetry", which makes the fetch fail with ERR_BLOCKED_BY_CLIENT even though the server is fine. The API root is
+ * never on those lists and answers with a tiny JSON message.
+ */
+export const PING_PATH = '/';
+
 export function createWaker({
   baseUrl,
   fetchImpl = (...args) => fetch(...args),
   now = () => Date.now(),
   wait = (ms) => new Promise((r) => setTimeout(r, ms)),
-  slowAfter = 1500,
-  giveUpAfter = 120_000,
+  slowAfter = 6000,
+  giveUpAfter = 240_000,
   retryEvery = 2500,
   pingTimeout = 8000,
 } = {}) {
@@ -38,7 +48,7 @@ export function createWaker({
     const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = ctrl ? setTimeout(() => ctrl.abort(), pingTimeout) : null;
     try {
-      const res = await fetchImpl(`${String(baseUrl).replace(/\/+$/, '')}/health`, { cache: 'no-store', signal: ctrl?.signal });
+      const res = await fetchImpl(`${String(baseUrl).replace(/\/+$/, '')}${PING_PATH}`, { cache: 'no-store', signal: ctrl?.signal });
       return Boolean(res?.ok);
     } catch {
       return false;
@@ -67,6 +77,7 @@ export function createWaker({
             set('ready');
             return true;
           }
+          if (state === 'checking') set('waking'); // a failed check means it really is starting up
           await wait(retryEvery);
         }
         set('failed');
@@ -80,8 +91,17 @@ export function createWaker({
 
   return {
     wake,
-    /** Resolves once the API answers (immediately if it already has). Safe to call from every request path. */
-    ensureAwake: () => (state === 'ready' ? Promise.resolve(true) : wake()),
+    /** Resolves once the API answers (at once if it already has, or if we already gave up). Safe on every request path. */
+    /**
+     * Resolves once the API answers. It never holds a request back for long: at most `maxWait` ms (the wake-up keeps
+     * going in the background), and not at all after we gave up. If a blocker interferes with our pings, the real
+     * request still goes out and carries its own long timeout.
+     */
+    ensureAwake: ({ maxWait = 15_000 } = {}) => {
+      if (state === 'ready') return Promise.resolve(true);
+      if (state === 'failed') return Promise.resolve(false);
+      return Promise.race([wake(), new Promise((resolve) => setTimeout(() => resolve(false), maxWait))]);
+    },
     getState: () => state,
     subscribe: (listener) => {
       listeners.add(listener);

@@ -28,7 +28,11 @@ if SECRET_KEY == _DEFAULT_SECRET:
 
 ROLES = ("admin", "recruiter", "employee")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt cost (log2 rounds). 12 is a sound production default. Tiny hosts (e.g. a free 0.1-CPU instance) take ~2 s per
+# hash at 12, so a public demo with throwaway passwords can set BCRYPT_ROUNDS=6. Existing hashes keep verifying: the
+# cost is stored inside each hash.
+BCRYPT_ROUNDS = max(4, min(15, int(os.getenv("BCRYPT_ROUNDS") or 12)))
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=BCRYPT_ROUNDS)
 # auto_error=False so a missing header returns a clean 401 (not 403) that the UI can explain.
 bearer_scheme = HTTPBearer(auto_error=False)
 

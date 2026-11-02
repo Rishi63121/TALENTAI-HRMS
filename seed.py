@@ -185,7 +185,8 @@ def seed_demo(db):
     print(f"  employee@talentai.com  / {DEMO_PASSWORD}")
 
 
-def main():
+def run(demo: bool = False):
+    """Migrate, make sure the admin exists and optionally load the sample data. Safe to run repeatedly."""
     upgrade_to_head()
     db = SessionLocal()
     try:
@@ -196,10 +197,14 @@ def main():
         else:
             print("Admin user already exists.")
 
-        if "--demo" in sys.argv:
+        if demo:
             seed_demo(db)
     finally:
         db.close()
+
+
+def main():
+    run(demo="--demo" in sys.argv)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,9 @@ import { Input } from '../../components/ui/Field';
 import { ROLE_HOME, useAuth } from '../../context/AuthContext';
 import { normalizeError } from '../../lib/errors';
 
+// One-click demo logins: always in local development, and in the hosted demo build (VITE_DEMO_MODE=true).
+const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_DEMO_MODE === 'true';
+
 const DEMO_ACCOUNTS = [
   { label: 'Admin', email: 'admin@talentai.com', password: 'admin123' },
   { label: 'Recruiter', email: 'recruiter@talentai.com', password: 'Demo@1234' },
@@ -162,7 +165,7 @@ export default function Login() {
         </Button>
       </form>
 
-      {import.meta.env.DEV && (
+      {SHOW_DEMO && (
         <div className="mt-7 rounded-2xl border border-dashed p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Demo accounts</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -177,7 +180,15 @@ export default function Login() {
               </button>
             ))}
           </div>
-          <p className="mt-2.5 text-xs text-muted-foreground">Click one to fill the form. Run <code className="rounded bg-muted px-1">python seed.py --demo</code> first.</p>
+          <p className="mt-2.5 text-xs text-muted-foreground">
+            {import.meta.env.VITE_DEMO_MODE === 'true' ? (
+              'Public demo with sample data. It resets periodically, so feel free to click around.'
+            ) : (
+              <>
+                Click one to fill the form. Run <code className="rounded bg-muted px-1">python seed.py --demo</code> first.
+              </>
+            )}
+          </p>
         </div>
       )}
     </AuthLayout>

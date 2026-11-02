@@ -143,3 +143,16 @@ talentai-hrms/
 - Behind a proxy, set `TRUST_PROXY=true`; with more than one worker, set `RATE_LIMIT_STORAGE_URI` to Redis.
 - Serve the frontend (`npm run build` -> `frontend/dist`) behind HTTPS.
 - CI (`.github/workflows/ci.yml`) runs the tests on SQLite and PostgreSQL once the project is pushed to GitHub.
+
+## Public demo deployment
+
+The demo is two pieces: the API on **Render** and the frontend on **Vercel**. It runs with sample data and one-click demo logins.
+
+1. **API (Render):** New > Blueprint > select this repo. `render.yaml` creates the `talentai-api` web service (free plan). With `DEMO_MODE=true` it
+   loads the sample data on every boot, because free instances have an ephemeral disk. The first request after ~15 minutes idle takes ~50 s to wake it.
+   Optionally add a valid `GROQ_API_KEY` in the Render dashboard to turn on AI scoring; without it the app falls back to keyword matching.
+2. **Frontend (Vercel):** import this repo, set **Root Directory** to `frontend`, and add the environment variables
+   `VITE_API_BASE_URL=https://<your-render-service>.onrender.com` and `VITE_DEMO_MODE=true`. Name the project `talentai-hrms` so its URLs match the
+   API's `CORS_ORIGIN_REGEX`; for any other domain set `CORS_ORIGINS` on the API.
+3. Demo logins (shown as buttons on the sign-in page): `admin@talentai.com / admin123`, `recruiter@talentai.com / Demo@1234`,
+   `employee@talentai.com / Demo@1234`. **Never enable `DEMO_MODE` with real data**: these credentials are public.

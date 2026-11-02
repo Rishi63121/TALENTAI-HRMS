@@ -1,0 +1,27 @@
+# Render Blueprint for the TalentAI API (public demo). New > Blueprint > pick this repo.
+# The frontend is deployed separately on Vercel (see frontend/vercel.json and the README).
+services:
+  - type: web
+    name: talentai-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
+      - key: SECRET_KEY
+        generateValue: true
+      # Demo: sample data is reloaded on every boot (free instances have an ephemeral disk).
+      - key: DEMO_MODE
+        value: "true"
+      # The Vercel site (and its preview deployments) may call this API. Add a custom domain via CORS_ORIGINS.
+      - key: CORS_ORIGIN_REGEX
+        value: ^https://talentai-hrms[a-z0-9-]*\.vercel\.app$
+      # Render terminates TLS in front of the app; read the real client IP for rate limiting.
+      - key: TRUST_PROXY
+        value: "true"
+      # Optional: paste a valid Groq key in the Render dashboard to enable AI scoring. Works without it.
+      - key: GROQ_API_KEY
+        sync: false

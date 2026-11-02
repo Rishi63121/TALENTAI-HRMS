@@ -40,6 +40,13 @@ logger = logging.getLogger("talentai")
 if os.getenv("AUTO_MIGRATE", "true").lower() != "false":
     upgrade_to_head()
 
+# Public demo deployments set DEMO_MODE=true: the sample data is (re)loaded on every boot, which matters on hosts
+# with an ephemeral disk where the database starts empty after each restart. Never enable this with real data.
+if os.getenv("DEMO_MODE", "false").lower() == "true":
+    import seed  # project-root script; uvicorn is started from the project root
+
+    seed.run(demo=True)
+
 app = FastAPI(
     title="TalentAI HRMS",
     version="2.0.0",
@@ -61,7 +68,9 @@ LAN_ORIGIN_REGEX = (
     r"^https?://(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}"
     r"|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$"
 )
-origin_regex = None if configured_origins else LAN_ORIGIN_REGEX
+# Optional extra pattern, e.g. CORS_ORIGIN_REGEX="^https://talentai-hrms[a-z0-9-]*\\.vercel\\.app$" for Vercel preview URLs.
+extra_regex = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
+origin_regex = extra_regex or (None if configured_origins else LAN_ORIGIN_REGEX)
 
 
 def origin_allowed(origin: str | None) -> bool:

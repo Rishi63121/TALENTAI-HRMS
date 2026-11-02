@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import api, { TOKEN_KEY, USER_KEY, setUnauthorizedHandler } from '../api/axios';
 import { queryClient } from '../lib/queryClient';
 import { normalizeError } from '../lib/errors';
+import { ensureAwake } from '../lib/serverWake';
 
 const AuthContext = createContext(null);
 
@@ -103,6 +104,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (email, password) => {
+    await ensureAwake();
     const { data } = await api.post('/auth/login', { email, password });
     const nextUser = {
       user_id: data.user_id,
@@ -120,6 +122,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const register = useCallback(async (payload) => {
+    await ensureAwake();
     const { data } = await api.post('/auth/register', payload);
     return data;
   }, []);

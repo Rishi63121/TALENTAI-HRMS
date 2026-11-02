@@ -3,6 +3,7 @@ import { BrainCircuit, CalendarCheck, ShieldCheck, Sparkles, Users } from 'lucid
 import { Logo, LogoMark } from '../ui/Logo';
 import ThemeToggle from '../ui/ThemeToggle';
 import TalentGraph from '../fx/TalentGraph';
+import WakeNotice from '../feedback/WakeNotice';
 import { rise, stagger } from '../../lib/motion';
 
 const FEATURES = [
@@ -121,7 +122,10 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
           >
             <h1 className="font-display text-3xl font-bold tracking-tight">{title}</h1>
             <p className="mt-2 text-[15px] leading-6 text-muted-foreground">{subtitle}</p>
-            <div className="mt-8">{children}</div>
+            <div className="mt-8">
+              <WakeNotice />
+              {children}
+            </div>
             {footer && <div className="mt-8 text-center text-sm text-muted-foreground">{footer}</div>}
           </motion.div>
         </div>

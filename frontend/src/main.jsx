@@ -11,7 +11,11 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { UIProvider } from './context/UIContext';
 import { queryClient } from './lib/queryClient';
+import { wakeServer } from './lib/serverWake';
 import './styles/index.css';
+
+// Start waking a sleeping API (free hosts idle) the moment the page loads, not when the user clicks Sign in.
+wakeServer();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

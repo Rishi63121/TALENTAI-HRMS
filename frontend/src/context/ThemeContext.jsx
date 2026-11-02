@@ -18,7 +18,7 @@ export function ThemeProvider({ children }) {
     const root = document.documentElement;
     root.classList.toggle('dark', theme === 'dark');
     root.style.colorScheme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0a0b1a' : '#5b5ff0');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#070a14' : '#5b3df5');
   }, [theme]);
 
   const setTheme = useCallback((next) => {

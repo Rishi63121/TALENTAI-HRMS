@@ -9,6 +9,7 @@ import ConnectionBanner from './components/feedback/ConnectionBanner';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import { UIProvider } from './context/UIContext';
 import { queryClient } from './lib/queryClient';
 import './styles/index.css';
 
@@ -22,8 +23,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <BrowserRouter>
               <ToastProvider>
                 <AuthProvider>
-                  <ConnectionBanner />
-                  <App />
+                  <UIProvider>
+                    <ConnectionBanner />
+                    <App />
+                  </UIProvider>
                 </AuthProvider>
               </ToastProvider>
             </BrowserRouter>

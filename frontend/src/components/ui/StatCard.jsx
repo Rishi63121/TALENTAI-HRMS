@@ -3,6 +3,7 @@ import { animate, motion, useInView, useReducedMotion } from 'framer-motion';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { rise } from '../../lib/motion';
+import { useTilt } from '../../lib/useTilt';
 
 /** Counts up to `value` when it scrolls into view. */
 export function AnimatedNumber({ value, format = (n) => Math.round(n).toLocaleString(), duration = 1.1 }) {
@@ -42,13 +43,17 @@ const TONES = {
 /** KPI tile. Use inside a `motion` stagger parent (variants=rise) for a cascading entrance. */
 export default function StatCard({ label, value, format, icon: Icon, tone = 'primary', hint, trend, className }) {
   const t = TONES[tone] || TONES.primary;
+  const tilt = useTilt({ max: 7 });
   return (
     <motion.div
+      ref={tilt.ref}
+      style={tilt.style}
+      {...tilt.handlers}
       variants={rise}
       whileHover={{ y: -4 }}
       transition={{ type: 'spring', stiffness: 400, damping: 26 }}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-soft transition-shadow hover:shadow-lift sm:p-5',
+        'spotlight group relative overflow-hidden rounded-2xl border bg-card/75 p-4 shadow-soft backdrop-blur-md transition-shadow hover:shadow-lift sm:p-5',
         className
       )}
     >
@@ -69,7 +74,7 @@ export default function StatCard({ label, value, format, icon: Icon, tone = 'pri
           </span>
         )}
       </div>
-      <p className="font-display relative mt-4 text-2xl font-extrabold tracking-tight tabular-nums sm:text-[1.7rem]">
+      <p className="font-display text-brand relative mt-4 text-3xl font-bold tracking-tight tabular-nums sm:text-[2.1rem]">
         <AnimatedNumber value={value} format={format} />
       </p>
       <p className="relative mt-0.5 text-sm font-medium text-muted-foreground">{label}</p>

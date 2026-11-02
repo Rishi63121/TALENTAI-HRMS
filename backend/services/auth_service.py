@@ -9,6 +9,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+
+from backend.models.models import User
+from database.db import get_db
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / ".env")
 
@@ -57,6 +61,7 @@ def decode_token(token: str) -> dict:
 
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
 ) -> dict:
     if credentials is None:
         raise HTTPException(
@@ -64,7 +69,15 @@ def get_current_user(
             detail="You need to sign in to access this.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return decode_token(credentials.credentials)
+    payload = decode_token(credentials.credentials)
+    # An admin can revoke a recruiter at any time; that must also end sessions that are already signed in.
+    account = db.query(User.status).filter(User.email == payload.get("sub")).first()
+    if account is not None and account[0] != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your access was removed by an administrator.",
+        )
+    return payload
 
 
 def require_roles(*allowed: str):

@@ -12,6 +12,8 @@ import { ChartSkeleton, StatGridSkeleton } from '../../components/ui/Skeleton';
 import EmptyState from '../../components/feedback/EmptyState';
 import QueryBoundary from '../../components/feedback/QueryBoundary';
 import { ANIMATION, AXIS, ChartCard, ChartTooltip, GRID } from '../../components/charts/common';
+import SkillsRadar from '../../components/insights/SkillsRadar';
+import ActivityFeedCard from '../../components/insights/ActivityFeed';
 import { useOverview } from '../../api/queries';
 import { useAuth } from '../../context/AuthContext';
 import { greeting } from '../../lib/format';
@@ -145,6 +147,16 @@ export default function RecruiterDashboard() {
       <QueryBoundary query={query} skeleton={<Skeletons />}>
         {(data) => <Dashboard data={data} />}
       </QueryBoundary>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-60px' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-6 grid gap-4 lg:grid-cols-2"
+      >
+        <SkillsRadar />
+        <ActivityFeedCard />
+      </motion.div>
     </>
   );
 }

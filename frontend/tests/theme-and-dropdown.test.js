@@ -10,11 +10,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
 // ---- theme default -------------------------------------------------------
-test('light is the default when nothing is saved', () => {
-  assert.equal(resolveTheme(null), 'light');
-  assert.equal(resolveTheme(undefined), 'light');
-  assert.equal(resolveTheme(''), 'light');
-  assert.equal(resolveTheme('garbage'), 'light');
+test('dark is the default when nothing is saved', () => {
+  assert.equal(resolveTheme(null), 'dark');
+  assert.equal(resolveTheme(undefined), 'dark');
+  assert.equal(resolveTheme(''), 'dark');
+  assert.equal(resolveTheme('garbage'), 'dark');
 });
 
 test('a saved choice always wins over the default', () => {
@@ -28,9 +28,9 @@ test('the operating-system dark preference no longer forces dark mode', () => {
   }
 });
 
-test('the pre-paint script only adds .dark for a saved "dark"', () => {
+test('the pre-paint script adds .dark unless the user saved "light"', () => {
   const html = read('index.html');
-  assert.match(html, /getItem\('talentai-theme'\) === 'dark'/);
+  assert.match(html, /getItem\('talentai-theme'\) !== 'light'/);
 });
 
 // ---- dropdown contrast ---------------------------------------------------

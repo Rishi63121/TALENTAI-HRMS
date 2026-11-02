@@ -62,3 +62,33 @@ def test_deleting_employee_and_job_respects_foreign_keys(client, admin, recruite
 
     job_id = client.post("/jobs", json=JOB, headers=recruiter).json()["job_id"]
     assert client.delete(f"/jobs/{job_id}", headers=recruiter).status_code == 200
+
+
+# ---- insights + copilot -----------------------------------------------------
+
+def test_activity_and_skills_are_staff_only(client, admin, recruiter, employee):
+    for url in ("/insights/activity", "/insights/skills"):
+        assert client.get(url).status_code == 401
+        assert client.get(url, headers=employee).status_code == 403
+        assert client.get(url, headers=recruiter).status_code == 200
+        assert client.get(url, headers=admin).status_code == 200
+
+
+def test_activity_lists_new_job(client, recruiter):
+    client.post("/jobs", json={"title": "Activity Test Role", "description": "x", "required_skills": ["Go"]}, headers=recruiter)
+    events = client.get("/insights/activity", headers=recruiter).json()
+    assert any(e["kind"] == "job" and e["detail"] == "Activity Test Role" for e in events)
+    assert all("at" in e and e["at"].endswith("Z") for e in events)
+
+
+def test_copilot_answers_from_data_without_ai_key(client, recruiter, employee):
+    assert client.post("/copilot/chat", json={"messages": [{"role": "user", "content": "open jobs?"}]}, headers=employee).status_code == 403
+    r = client.post("/copilot/chat", json={"messages": [{"role": "user", "content": "What jobs are open?"}]}, headers=recruiter)
+    assert r.status_code == 200
+    assert r.json()["source"] == "data"
+    assert "job" in r.json()["reply"].lower()
+
+
+def test_copilot_rejects_bad_payload(client, recruiter):
+    assert client.post("/copilot/chat", json={"messages": []}, headers=recruiter).status_code == 422
+    assert client.post("/copilot/chat", json={"messages": [{"role": "system", "content": "x"}]}, headers=recruiter).status_code == 422

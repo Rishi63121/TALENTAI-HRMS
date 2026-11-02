@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AlertCircle, Briefcase, Check, Eye, EyeOff, Lock, Mail, User, UserPlus, UserRound } from 'lucide-react';
+import { AlertCircle, Briefcase, Check, Clock, Eye, EyeOff, Lock, Mail, User, UserPlus, UserRound } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import Button from '../../components/ui/Button';
 import { Input } from '../../components/ui/Field';
@@ -42,6 +42,7 @@ export default function Register() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [touched, setTouched] = useState({});
+  const [requested, setRequested] = useState(null); // set once a recruiter request has been sent
 
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -66,8 +67,14 @@ export default function Register() {
     setBusy(true);
     setError(null);
     try {
-      await register({ name: form.name.trim(), email: form.email.trim(), password: form.password, role: form.role });
-      // Sign them straight in - no second login screen.
+      const result = await register({ name: form.name.trim(), email: form.email.trim(), password: form.password, role: form.role });
+      // Recruiters must be approved by an admin first, so there is nothing to sign in to yet.
+      if (result?.status === 'pending') {
+        setRequested(form.email.trim());
+        setBusy(false);
+        return;
+      }
+      // Everyone else is signed straight in - no second login screen.
       const user = await login(form.email.trim(), form.password);
       toast.success(`Welcome to TalentAI, ${user.name?.split(' ')[0] || 'there'}!`, 'Account created');
       navigate(ROLE_HOME[user.role] || '/login', { replace: true });
@@ -77,10 +84,29 @@ export default function Register() {
     }
   };
 
+  if (requested) {
+    return (
+      <AuthLayout title="Request sent" subtitle="Your recruiter account needs an admin's approval before you can sign in.">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-warning/30 bg-warning/10 p-5">
+          <span className="grid size-11 place-items-center rounded-xl bg-warning/20 text-warning">
+            <Clock className="size-6" aria-hidden />
+          </span>
+          <p className="mt-4 font-display text-lg font-bold">Waiting for approval</p>
+          <p className="mt-1.5 text-sm leading-6 text-foreground/80">
+            We've sent your request for <span className="font-semibold">{requested}</span> to the administrators. You can sign in as soon as one of them approves it, so there's nothing else you need to do.
+          </p>
+        </motion.div>
+        <Button to="/login" size="lg" className="mt-6 w-full" variant="outline">
+          Back to sign in
+        </Button>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Join TalentAI in under a minute."
+      subtitle="Join TalentAI in under a minute. Recruiter accounts are approved by an admin first."
       footer={
         <>
           Already have an account?{' '}

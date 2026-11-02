@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, LogOut, Menu } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Search } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Avatar from '../ui/Avatar';
 import ThemeToggle from '../ui/ThemeToggle';
 import { LogoMark } from '../ui/Logo';
 import { Badge } from '../ui/Badge';
 import { titleForPath } from '../../lib/nav';
+import NotificationBell from './NotificationBell';
 import { useAuth } from '../../context/AuthContext';
+import { useUI } from '../../context/UIContext';
 
 function UserMenu() {
   const { user, role, logout } = useAuth();
@@ -78,7 +80,9 @@ function UserMenu() {
 
 export default function Topbar({ onOpenMenu }) {
   const { role } = useAuth();
+  const { openPalette } = useUI();
   const { pathname } = useLocation();
+  const isStaff = role === 'admin' || role === 'recruiter';
 
   return (
     <header className="glass sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-x-0 border-t-0 border-b px-4 pt-safe sm:px-6 lg:px-8">
@@ -90,7 +94,7 @@ export default function Topbar({ onOpenMenu }) {
         >
           <Menu className="size-5" />
         </button>
-        <LogoMark className="size-8 lg:hidden" />
+        <LogoMark className="hidden size-8 sm:block lg:hidden" />
         <AnimatePresence mode="wait" initial={false}>
           <motion.h2
             key={pathname}
@@ -105,6 +109,23 @@ export default function Topbar({ onOpenMenu }) {
         </AnimatePresence>
       </div>
       <div className="flex items-center gap-1">
+        <button
+          onClick={openPalette}
+          aria-label="Open command palette"
+          className="hidden h-10 items-center gap-2 rounded-xl border bg-card/60 px-3 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-foreground md:flex"
+        >
+          <Search className="size-4" />
+          <span>Search</span>
+          <kbd className="rounded-md border bg-muted px-1.5 py-0.5 text-[11px] font-semibold">Ctrl K</kbd>
+        </button>
+        <button
+          onClick={openPalette}
+          aria-label="Open command palette"
+          className="grid size-10 place-items-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground md:hidden"
+        >
+          <Search className="size-5" />
+        </button>
+        {isStaff && <NotificationBell />}
         <ThemeToggle />
         <UserMenu />
       </div>

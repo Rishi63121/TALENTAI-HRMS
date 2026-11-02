@@ -148,7 +148,7 @@ def _admin_overview(db: Session) -> dict:
             "employees": len(employees),
             "candidates": db.query(Candidate).count(),
             "open_jobs": db.query(Job).count(),
-            "recruiters": db.query(User).filter(User.role == "recruiter").count(),
+            "recruiters": db.query(User).filter(User.role == "recruiter", User.status == "active").count(),
             "present_today": present_today,
             "monthly_payroll": payroll_trend[-1]["total"] if payroll_trend else 0,
             "avg_rating": round(sum(ratings) / len(ratings), 2) if ratings else None,

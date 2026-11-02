@@ -14,7 +14,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowRight, Briefcase, CalendarCheck, Star, UserPlus, UserSearch, Users, Wallet } from 'lucide-react';
+import { ArrowRight, Briefcase, Clock, CalendarCheck, Star, UserPlus, UserSearch, Users, Wallet } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import StatCard from '../../components/ui/StatCard';
 import Button from '../../components/ui/Button';
@@ -25,7 +25,9 @@ import { ChartSkeleton, StatGridSkeleton } from '../../components/ui/Skeleton';
 import EmptyState from '../../components/feedback/EmptyState';
 import QueryBoundary from '../../components/feedback/QueryBoundary';
 import { ANIMATION, AXIS, ChartCard, ChartTooltip, GRID, Legend, PALETTE } from '../../components/charts/common';
-import { useOverview } from '../../api/queries';
+import SkillsRadar from '../../components/insights/SkillsRadar';
+import ActivityFeedCard from '../../components/insights/ActivityFeed';
+import { useOverview, useRecruiters } from '../../api/queries';
 import { useAuth } from '../../context/AuthContext';
 import { formatCompact, formatCurrency, greeting } from '../../lib/format';
 import { rise, stagger } from '../../lib/motion';
@@ -280,6 +282,29 @@ function Dashboard({ data }) {
   );
 }
 
+/** Nudge shown to admins while recruiter sign-up requests are waiting for a decision. */
+function PendingRecruitersBanner() {
+  const q = useRecruiters();
+  const pending = (q.data || []).filter((r) => r.status === 'pending').length;
+  if (!pending) return null;
+  return (
+    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4">
+      <span className="grid size-10 place-items-center rounded-xl bg-warning/20 text-warning">
+        <Clock className="size-5" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">
+          {pending} recruiter {pending === 1 ? 'request is' : 'requests are'} waiting for your approval
+        </p>
+        <p className="text-sm text-foreground/70">They can't sign in until you approve them.</p>
+      </div>
+      <Button to="/admin/recruiters" size="sm" variant="outline">
+        Review <ArrowRight className="size-4" />
+      </Button>
+    </motion.div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const query = useOverview();
@@ -301,9 +326,20 @@ export default function AdminDashboard() {
           </>
         }
       />
+      <PendingRecruitersBanner />
       <QueryBoundary query={query} skeleton={<DashboardSkeleton />}>
         {(data) => <Dashboard data={data} />}
       </QueryBoundary>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-60px' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-6 grid gap-4 lg:grid-cols-2"
+      >
+        <SkillsRadar />
+        <ActivityFeedCard />
+      </motion.div>
     </>
   );
 }

@@ -8,7 +8,7 @@
 ------------------------------------------------------------------- */
 @theme inline {
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,9 +44,9 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
 
-  --shadow-soft: 0 1px 2px rgb(15 18 38 / 0.04), 0 8px 24px -8px rgb(15 18 38 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(15 18 38 / 0.04), 0 16px 40px -12px rgb(91 95 240 / 0.28);
-  --shadow-glow: 0 0 0 1px rgb(91 95 240 / 0.25), 0 12px 40px -8px rgb(91 95 240 / 0.45);
+  --shadow-soft: 0 1px 2px rgb(8 10 40 / 0.06), 0 8px 24px -8px rgb(8 10 40 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(8 10 40 / 0.06), 0 16px 40px -12px rgb(124 92 255 / 0.30);
+  --shadow-glow: 0 0 0 1px rgb(124 92 255 / 0.32), 0 12px 40px -8px rgb(124 92 255 / 0.5);
 
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
@@ -55,73 +55,84 @@
   --animate-pulse-ring: pulse-ring 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
 }
 
+/* Midnight glass theme: deep navy ink, violet + mint accents. Dark is the default, light is a cool pearl variant. */
 :root {
-  --background: #f6f7fb;
-  --foreground: #0f1226;
+  --background: #f4f6ff;
+  --foreground: #12163a;
   --card: #ffffff;
-  --card-foreground: #0f1226;
+  --card-foreground: #12163a;
   --popover: #ffffff;
-  --popover-foreground: #0f1226;
-  --primary: #5b5ff0;
+  --popover-foreground: #12163a;
+  --primary: #5b3df5;
   --primary-foreground: #ffffff;
-  --secondary: #eef0f8;
-  --secondary-foreground: #232846;
-  --muted: #eef0f7;
-  --muted-foreground: #5b6280;
-  --accent: #ecebff;
-  --accent-foreground: #3a3fc2;
-  --destructive: #e11d48;
-  --success: #059669;
-  --warning: #d97706;
-  --info: #0891b2;
-  --border: #e3e6f1;
-  --input: #d9deec;
-  --ring: #5b5ff0;
+  --secondary: #eceffd;
+  --secondary-foreground: #232a5a;
+  --muted: #eef0fb;
+  --muted-foreground: #5a6286;
+  --accent: #e9e5ff;
+  --accent-foreground: #3b24c7;
+  --destructive: #d62958;
+  --success: #0f9d6e;
+  --warning: #b7791f;
+  --info: #0b7fb3;
+  --border: #dde1f5;
+  --input: #cdd3ee;
+  --ring: #5b3df5;
 
-  --chart-1: #5b5ff0;
-  --chart-2: #22b8cf;
-  --chart-3: #f59e0b;
-  --chart-4: #ec4899;
-  --chart-5: #10b981;
+  --chart-1: #5b3df5;
+  --chart-2: #0fb5a3;
+  --chart-3: #d99a1b;
+  --chart-4: #d9468f;
+  --chart-5: #1d8fd1;
 
-  --brand-from: #5b5ff0;
-  --brand-via: #8b5cf6;
-  --brand-to: #22b8cf;
+  --brand-from: #5b3df5;
+  --brand-via: #7c5cff;
+  --brand-to: #4f7bff;
+  --aurora-1: #7c5cff;
+  --aurora-2: #5fd6c8;
+  --aurora-3: #ff9cc7;
+  --orb-opacity: 0.22;
+  --graph-opacity: 0.55;
   color-scheme: light;
 }
 
 .dark {
-  --background: #0a0b1a;
-  --foreground: #eceefc;
-  --card: #12142b;
-  --card-foreground: #eceefc;
-  --popover: #161936;
-  --popover-foreground: #eceefc;
-  --primary: #7c83ff;
-  --primary-foreground: #0a0b1a;
-  --secondary: #1a1d3a;
-  --secondary-foreground: #dfe2fa;
-  --muted: #181b37;
-  --muted-foreground: #9aa1c7;
-  --accent: #23265a;
-  --accent-foreground: #c9ccff;
-  --destructive: #fb7185;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --info: #22d3ee;
-  --border: #252952;
-  --input: #2d3260;
-  --ring: #7c83ff;
+  --background: #070a14;
+  --foreground: #e8ecff;
+  --card: #0e1322;
+  --card-foreground: #e8ecff;
+  --popover: #121830;
+  --popover-foreground: #e8ecff;
+  --primary: #8b7dff;
+  --primary-foreground: #0a0720;
+  --secondary: #141a30;
+  --secondary-foreground: #dfe5ff;
+  --muted: #121830;
+  --muted-foreground: #98a2c8;
+  --accent: #1d2150;
+  --accent-foreground: #cfc9ff;
+  --destructive: #ff6b8b;
+  --success: #34e0a1;
+  --warning: #ffc15a;
+  --info: #5cd0ff;
+  --border: #1f2748;
+  --input: #2a3460;
+  --ring: #8b7dff;
 
-  --chart-1: #818cf8;
-  --chart-2: #22d3ee;
-  --chart-3: #fbbf24;
-  --chart-4: #f472b6;
-  --chart-5: #34d399;
+  --chart-1: #8b7dff;
+  --chart-2: #2de2c4;
+  --chart-3: #ffc15a;
+  --chart-4: #ff7eb6;
+  --chart-5: #5cd0ff;
 
-  --brand-from: #7c83ff;
-  --brand-via: #a78bfa;
-  --brand-to: #22d3ee;
+  --brand-from: #5b3df5;
+  --brand-via: #7c5cff;
+  --brand-to: #4f7bff;
+  --aurora-1: #5b3df5;
+  --aurora-2: #0e9e91;
+  --aurora-3: #d6428f;
+  --orb-opacity: 0.32;
+  --graph-opacity: 0.9;
   color-scheme: dark;
 }
 
@@ -145,8 +156,7 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
-    word-spacing: 0.06em;
+    letter-spacing: -0.02em;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 30%, transparent);
@@ -229,6 +239,28 @@
 }
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
+}
+
+/* Cursor-following glow on cards (--mx/--my are set by useTilt). */
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--primary) 18%, transparent), transparent 62%);
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Thin progress line that sweeps across the top on every page change. */
+@keyframes route-sweep {
+  0% { transform: scaleX(0); opacity: 1; }
+  70% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
 }
 
 /* Subtle dotted grid used behind hero areas */

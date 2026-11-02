@@ -12,6 +12,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     role = Column(String, default="recruiter")
+    # active: may sign in | pending: recruiter waiting for admin approval | rejected: declined or revoked by an admin
+    status = Column(String, nullable=False, default="active", server_default="active")
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

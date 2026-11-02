@@ -5,19 +5,20 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import BottomBar, { MobileDrawer } from './MobileNav';
 import ErrorBoundary from '../feedback/ErrorBoundary';
+import AuroraBackground from '../fx/AuroraBackground';
+import CommandPalette from './CommandPalette';
+import CopilotPanel from './CopilotPanel';
+import { useAuth } from '../../context/AuthContext';
 import { Skeleton, StatGridSkeleton, TableSkeleton } from '../ui/Skeleton';
 import { pageVariants } from '../../lib/motion';
 
 const COLLAPSE_KEY = 'talentai-sidebar-collapsed';
 
-/** Soft drifting colour blobs behind the content. Pure CSS animation, GPU-friendly. */
-function Aurora() {
+/** Thin crimson line that sweeps across the top whenever the route changes. */
+function RouteProgress({ routeKey }) {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="bg-grid absolute inset-0 opacity-40" />
-      <div className="bg-brand absolute -left-40 -top-40 size-[34rem] rounded-full opacity-[0.13] blur-3xl [animation:float_14s_ease-in-out_infinite]" />
-      <div className="absolute -bottom-52 -right-40 size-[38rem] rounded-full bg-chart-2 opacity-[0.10] blur-3xl [animation:float_18s_ease-in-out_infinite_2s]" />
-      <div className="absolute right-1/4 top-1/3 size-72 rounded-full bg-chart-4 opacity-[0.06] blur-3xl [animation:float_16s_ease-in-out_infinite_1s]" />
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[130] h-0.5">
+      <div key={routeKey} className="bg-brand h-full origin-left shadow-[0_0_12px_var(--primary)] [animation:route-sweep_0.7s_ease-out_forwards]" />
     </div>
   );
 }
@@ -40,6 +41,7 @@ function PageSkeleton() {
 
 export default function AppShell() {
   const outlet = useOutlet();
+  const { role } = useAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
@@ -68,7 +70,8 @@ export default function AppShell() {
 
   return (
     <div className="min-h-[100dvh]">
-      <Aurora />
+      <AuroraBackground />
+      <RouteProgress routeKey={pathname} />
       <a
         href="#main"
         className="sr-only z-[200] rounded-lg bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
@@ -94,6 +97,8 @@ export default function AppShell() {
       </div>
 
       <BottomBar onOpenMenu={() => setMenuOpen(true)} />
+      <CommandPalette />
+      {(role === 'admin' || role === 'recruiter') && <CopilotPanel />}
     </div>
   );
 }

@@ -40,7 +40,8 @@ api.interceptors.response.use(
     error.normalized = normalizeError(error);
 
     const isLoginCall = error.config?.url?.includes('/auth/login');
-    if (error.response?.status === 401 && !isLoginCall && unauthorizedHandler) {
+    const accessRemoved = error.response?.status === 403 && /access was removed/i.test(String(error.response?.data?.detail || ''));
+    if ((error.response?.status === 401 || accessRemoved) && !isLoginCall && unauthorizedHandler) {
       unauthorizedHandler(error.normalized);
     }
     return Promise.reject(error);

@@ -8,7 +8,7 @@ const MotionLink = motion.create(Link);
 
 const VARIANTS = {
   primary:
-    'bg-brand text-white shadow-[0_8px_24px_-8px_rgb(91_95_240/0.7)] hover:shadow-[0_12px_32px_-8px_rgb(91_95_240/0.85)] hover:brightness-110',
+    'bg-brand text-white shadow-[0_8px_24px_-8px_rgb(124_92_255/0.6)] hover:shadow-[0_12px_32px_-8px_rgb(124_92_255/0.8)] hover:brightness-110',
   secondary: 'bg-secondary text-secondary-foreground hover:bg-muted',
   soft: 'bg-primary/10 text-primary hover:bg-primary/15',
   outline: 'border border-input bg-card text-foreground hover:bg-muted',

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, Eye, EyeOff, Lock, LogIn, Mail, ShieldAlert, WifiOff } from 'lucide-react';
+import { AlertCircle, Clock, Eye, EyeOff, Lock, LogIn, Mail, ShieldAlert, WifiOff } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import Button from '../../components/ui/Button';
 import { Input } from '../../components/ui/Field';
@@ -100,8 +100,19 @@ export default function Login() {
         {error && (
           <Notice
             key="error"
-            icon={connectionProblem ? WifiOff : AlertCircle}
-            title={connectionProblem ? "Can't reach the server" : error.kind === 'unauthorized' ? 'Sign-in failed' : error.title}
+            tone={error.kind === 'forbidden' ? 'warning' : 'danger'}
+            icon={connectionProblem ? WifiOff : error.kind === 'forbidden' ? Clock : AlertCircle}
+            title={
+              connectionProblem
+                ? "Can't reach the server"
+                : error.kind === 'forbidden'
+                  ? /approval/i.test(error.message)
+                    ? 'Waiting for admin approval'
+                    : 'Access removed'
+                  : error.kind === 'unauthorized'
+                    ? 'Sign-in failed'
+                    : error.title
+            }
           >
             {connectionProblem
               ? 'We could not connect to TalentAI. Check your internet connection, or that the backend is running, then try again.'

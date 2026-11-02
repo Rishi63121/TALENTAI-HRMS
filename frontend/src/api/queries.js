@@ -31,6 +31,8 @@ export const keys = {
   interviews: (id) => ['interview', id],
   onboarding: ['onboarding'],
   emailStatus: ['emails', 'status'],
+  activity: ['activity'],
+  skills: ['skills'],
 };
 
 /* ------------------------------------------------------------------ helper */
@@ -151,6 +153,23 @@ export const useDeleteReview = (opts) =>
 /* --------------------------------------------------------------- recruiters */
 
 export const useRecruiters = (options) => useQuery({ queryKey: keys.recruiters, queryFn: () => get('/recruiters'), ...options });
+
+/** Admin decisions on recruiter accounts: approve a request (or restore access) / reject a request (or remove access). */
+export const useApproveRecruiter = (opts) =>
+  useApiMutation((id) => api.post(`/recruiters/${id}/approve`).then((r) => r.data), {
+    invalidate: [keys.recruiters, keys.activity, keys.overview],
+    success: (r) => `${r.name} can now sign in`,
+    errorTitle: "Couldn't approve",
+    ...opts,
+  });
+
+export const useRejectRecruiter = (opts) =>
+  useApiMutation((id) => api.post(`/recruiters/${id}/reject`).then((r) => r.data), {
+    invalidate: [keys.recruiters, keys.activity, keys.overview],
+    success: (r) => `${r.name} can no longer sign in`,
+    errorTitle: "Couldn't update",
+    ...opts,
+  });
 
 /* --------------------------------------------------------------------- jobs */
 
@@ -288,3 +307,16 @@ export const useUpdateOnboardingStatus = (opts) =>
       ...opts,
     }
   );
+
+/* ----------------------------------------------------------------- insights */
+
+export const useActivity = (params, options) =>
+  useQuery({ queryKey: [...keys.activity, params?.limit ?? 20], queryFn: () => get('/insights/activity', params), ...options });
+
+export const useSkills = (options) => useQuery({ queryKey: keys.skills, queryFn: () => get('/insights/skills'), ...options });
+
+/** Sends the running conversation to the AI copilot. Errors are shown inside the chat, not as toasts. */
+export const useCopilotChat = () =>
+  useMutation({
+    mutationFn: (messages) => api.post('/copilot/chat', { messages }, { timeout: AI_TIMEOUT }).then((r) => r.data),
+  });

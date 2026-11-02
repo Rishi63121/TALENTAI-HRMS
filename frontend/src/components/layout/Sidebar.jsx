@@ -27,7 +27,7 @@ function NavItem({ item, collapsed, onNavigate, layoutId }) {
           {isActive && (
             <motion.span
               layoutId={layoutId}
-              className="bg-brand absolute inset-0 rounded-xl shadow-[0_8px_20px_-8px_rgb(91_95_240/0.8)]"
+              className="bg-brand absolute inset-0 rounded-xl shadow-[0_8px_20px_-8px_rgb(124_92_255/0.7)]"
               transition={{ type: 'spring', stiffness: 460, damping: 36 }}
             />
           )}

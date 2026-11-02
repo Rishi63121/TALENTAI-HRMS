@@ -1,25 +1,30 @@
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/cn';
+import { useTilt } from '../../lib/useTilt';
 
-/** Surface container. `hover` adds a gentle lift; `glow` adds a brand-tinted shadow. */
+/** Surface container. `hover` adds pointer parallax (3D tilt + a glow that follows the cursor); `glow` adds a brand shadow. */
 export function Card({ className, hover = false, glow = false, children, as: _as, ...props }) {
-  const Comp = hover ? motion.div : 'div';
-  const hoverProps = hover
-    ? { whileHover: { y: -3 }, transition: { type: 'spring', stiffness: 400, damping: 28 } }
-    : {};
+  const tilt = useTilt();
+  const classes = cn('rounded-2xl border bg-card/75 text-card-foreground shadow-soft backdrop-blur-md [box-shadow:inset_0_1px_0_rgb(255_255_255/0.05),var(--shadow-soft)]', glow && 'shadow-lift', className);
+  if (!hover) {
+    return (
+      <div className={classes} {...props}>
+        {children}
+      </div>
+    );
+  }
   return (
-    <Comp
-      className={cn(
-        'rounded-2xl border bg-card text-card-foreground shadow-soft',
-        hover && 'transition-shadow hover:shadow-lift',
-        glow && 'shadow-lift',
-        className
-      )}
-      {...hoverProps}
+    <motion.div
+      ref={tilt.ref}
+      style={tilt.style}
+      {...tilt.handlers}
+      whileHover={{ y: -3 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      className={cn(classes, 'spotlight transition-shadow hover:shadow-lift')}
       {...props}
     >
       {children}
-    </Comp>
+    </motion.div>
   );
 }
 

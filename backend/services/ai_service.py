@@ -49,6 +49,24 @@ def _call_llm(prompt: str) -> str:
         return ""
 
 
+def chat_completion(messages: list) -> str:
+    """Multi-turn chat call. Returns "" when the key is missing or the request fails, so callers can fall back."""
+    if not os.getenv("GROQ_API_KEY"):
+        return ""
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            temperature=0.2,
+            max_tokens=500,
+            timeout=30,
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception as exc:
+        logger.warning("Groq chat failed: %s", exc)
+        return ""
+
+
 # ==========================================================
 # JSON PARSER
 # ==========================================================

@@ -28,6 +28,17 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password.",
         )
+    # Checked after the password so the account state is never revealed to someone who does not know it.
+    if user.status == "pending":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your recruiter account is waiting for admin approval. You'll be able to sign in as soon as an administrator approves it.",
+        )
+    if user.status == "rejected":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account request was declined or access was removed by an administrator. Please contact them if you think this is a mistake.",
+        )
     token = create_access_token(
         {
             "sub": user.email,
@@ -67,11 +78,19 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
         email=email,
         password_hash=hash_password(payload.password),
         role=role,
+        # Recruiters can create jobs and see candidate data, so an admin must approve them first.
+        status="pending" if role == "recruiter" else "active",
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"message": "User registered", "user_id": user.id}
+    return {
+        "message": "Request received. An administrator needs to approve your recruiter account before you can sign in."
+        if user.status == "pending"
+        else "User registered",
+        "user_id": user.id,
+        "status": user.status,
+    }
 
 
 @router.get("/me")
@@ -80,6 +99,8 @@ def me(current_user: dict = Depends(get_current_user), db: Session = Depends(get
     user = db.query(User).filter(User.email == current_user.get("sub")).first()
     if not user:
         raise HTTPException(status_code=401, detail="This account no longer exists.")
+    if user.status != "active":
+        raise HTTPException(status_code=403, detail="This account is not active.")
     return {
         "user_id": user.id,
         "name": user.name,

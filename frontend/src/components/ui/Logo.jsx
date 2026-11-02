@@ -7,9 +7,9 @@ export function LogoMark({ className = 'size-9', animated = false }) {
     <svg viewBox="0 0 40 40" className={className} role="img" aria-label="TalentAI logo">
       <defs>
         <linearGradient id={`g-${id}`} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#5b5ff0" />
-          <stop offset="0.55" stopColor="#8b5cf6" />
-          <stop offset="1" stopColor="#22b8cf" />
+          <stop offset="0" stopColor="#5b3df5" />
+          <stop offset="0.55" stopColor="#7c5cff" />
+          <stop offset="1" stopColor="#2de2c4" />
         </linearGradient>
       </defs>
       <rect width="40" height="40" rx="11" fill={`url(#g-${id})`} />

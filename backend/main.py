@@ -15,8 +15,10 @@ from backend.routers import (
     attendance,
     auth,
     candidates,
+    copilot,
     dashboard,
     emails,
+    insights,
     employees,
     interview,
     jobs,
@@ -161,6 +163,8 @@ app.include_router(performance.router, prefix="/performance", tags=["Performance
 
 # Insights
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+app.include_router(insights.router, prefix="/insights", tags=["Insights"])
+app.include_router(copilot.router, prefix="/copilot", tags=["Copilot"])
 
 
 @app.get("/", tags=["System"])
